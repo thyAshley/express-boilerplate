@@ -10,10 +10,16 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "biome": "biome check --write ."
   },
-  "keywords": [],
+  "keywords": [
+    "express",
+    "typescript",
+    "biome",
+    "zod",
+    "pino"
+  ],
   "author": "",
   "license": "ISC",
   "description": "",

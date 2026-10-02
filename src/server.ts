@@ -1,6 +1,6 @@
-import { createApp } from './app.js';
-import { env } from './config/env.js';
-import { logger } from './utils/logger.js';
+import { createApp } from "./app.js";
+import { env } from "./config/env.js";
+import { logger } from "./utils/logger.js";
 
 const app = createApp();
 
@@ -12,7 +12,7 @@ function shutdown(signal: string) {
   logger.info(`${signal} received, shutting down`);
   server.close((err) => {
     if (err) {
-      logger.error({ err }, 'Error during shutdown');
+      logger.error({ err }, "Error during shutdown");
       process.exit(1);
     }
     process.exit(0);
@@ -21,5 +21,5 @@ function shutdown(signal: string) {
   setTimeout(() => process.exit(1), 10_000).unref();
 }
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

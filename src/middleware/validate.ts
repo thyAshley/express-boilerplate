@@ -1,5 +1,5 @@
-import type { RequestHandler } from 'express';
-import type { z } from 'zod';
+import type { RequestHandler } from "express";
+import type { z } from "zod";
 
 interface Schemas {
   body?: z.ZodType;
@@ -18,7 +18,7 @@ export const validate =
     if (schemas.params) req.params = schemas.params.parse(req.params) as typeof req.params;
     if (schemas.query) {
       // req.query is a getter in Express 5, so redefine it instead of assigning
-      Object.defineProperty(req, 'query', {
+      Object.defineProperty(req, "query", {
         value: schemas.query.parse(req.query),
         writable: true,
         configurable: true,
