@@ -13,8 +13,10 @@ export default defineConfig({
     env: {
       NODE_ENV: "test",
       LOG_LEVEL: "silent",
-      DATABASE_URL:
-        process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/app_test",
+      POSTGRES_USER: process.env.POSTGRES_USER ?? "postgres",
+      POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ?? "postgres",
+      POSTGRES_DB: process.env.POSTGRES_DB ?? "app_test",
+      POSTGRES_PORT: process.env.POSTGRES_PORT ?? "5432",
     },
     // Code coverage configuration
     coverage: {

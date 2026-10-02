@@ -1,17 +1,6 @@
 name: express-boilerplate
 
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      PORT: 3000
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-app}
-    depends_on:
-      db:
-        condition: service_healthy
-
   db:
     image: postgres:17-alpine
     environment:
@@ -19,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-app}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro

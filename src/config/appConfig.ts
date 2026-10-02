@@ -5,7 +5,10 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   CORS_ORIGIN: z.string().default("*"),
-  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  POSTGRES_USER: z.string().default("postgres"),
+  POSTGRES_PASSWORD: z.string().default("postgres"),
+  POSTGRES_DB: z.string().default("app"),
+  POSTGRES_PORT: z.coerce.number().int().positive().default(5432),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -16,5 +19,15 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
-export type Env = typeof env;
+export const appConfig = {
+  ...parsed.data,
+  database: {
+    host: "localhost",
+    port: parsed.data.POSTGRES_PORT,
+    name: parsed.data.POSTGRES_DB,
+    user: parsed.data.POSTGRES_USER,
+    password: parsed.data.POSTGRES_PASSWORD,
+  },
+};
+
+export type TAppConfig = typeof appConfig;

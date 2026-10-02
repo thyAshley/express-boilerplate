@@ -7,4 +7,3 @@ coverage
 .claude/settings.local.json
 build
 .pnpm-store
-docker

@@ -1,5 +1,5 @@
 import { createApp } from "./app.js";
-import { env } from "./config/env.js";
+import { appConfig } from "./config/appConfig.js";
 import { closeDb, pingDb } from "./db/client.js";
 import { logger } from "./utils/logger.js";
 
@@ -15,8 +15,8 @@ try {
 
 const app = createApp();
 
-const server = app.listen(env.PORT, () => {
-  logger.info(`Server listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
+const server = app.listen(appConfig.PORT, () => {
+  logger.info(`Server listening on http://localhost:${appConfig.PORT} (${appConfig.NODE_ENV})`);
 });
 
 function shutdown(signal: string) {
