@@ -1,7 +1,7 @@
-import request from 'supertest';
 import express from 'express';
-import { z } from 'zod';
+import request from 'supertest';
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { createApp } from '../src/app.js';
 import { errorHandler } from '../src/middleware/errorHandler.js';
 import { validate } from '../src/middleware/validate.js';

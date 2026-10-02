@@ -10,7 +10,7 @@ A TypeScript REST API starter built on Express 5.
 - **pino** / **pino-http**: structured logging (pretty-printed in development)
 - **helmet**, **cors**: security headers and CORS
 - **Vitest** + **Supertest**: tests
-- **ESLint** (flat config) + **Prettier**
+- **Biome**: linting and formatting
 
 ## Getting started
 
@@ -29,8 +29,9 @@ npm run dev          # http://localhost:3000/api/health
 | `npm start`         | Run the compiled server                |
 | `npm test`          | Run tests once (`test:watch` to watch) |
 | `npm run typecheck` | Type-check without emitting            |
-| `npm run lint`      | Lint with ESLint                       |
-| `npm run format`    | Format with Prettier                   |
+| `npm run lint`      | Lint + format check with Biome      |
+| `npm run lint:fix`  | Apply safe Biome fixes              |
+| `npm run format`    | Format with Biome                   |
 
 ## Structure
 
