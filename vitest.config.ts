@@ -13,12 +13,14 @@ export default defineConfig({
     env: {
       NODE_ENV: "test",
       LOG_LEVEL: "silent",
+      DATABASE_URL:
+        process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/app_test",
     },
     // Code coverage configuration
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-       thresholds: {
+      thresholds: {
         branches: 60,
         functions: 60,
         lines: 60,
@@ -32,6 +34,9 @@ export default defineConfig({
         "src/tests/**",
         "dist/**",
         "drizzle/**",
+        // Process entry points (listen / exit), exercised by running the app
+        "src/server.ts",
+        "src/db/migrate.ts",
       ],
     },
   },
