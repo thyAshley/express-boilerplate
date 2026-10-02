@@ -15,8 +15,10 @@ try {
 
 const app = createApp();
 
-const server = app.listen(appConfig.PORT, () => {
-  logger.info(`Server listening on http://localhost:${appConfig.PORT} (${appConfig.NODE_ENV})`);
+const server = app.listen(appConfig.server.port, () => {
+  logger.info(
+    `Server listening on http://localhost:${appConfig.server.port} (${appConfig.environmnent})`,
+  );
 });
 
 function shutdown(signal: string) {
