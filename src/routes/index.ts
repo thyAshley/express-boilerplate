@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { healthRouter } from "./health.js";
+import { healthRouter } from "../modules/health/index.js";
+import { ROUTES } from "./routes.constants.js";
 
 export const router = Router();
 
-router.use("/health", healthRouter);
+router.use(ROUTES.health.getSystemStatus, healthRouter);

@@ -2,4 +2,3 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - '@types/node@26.6.4'
-minimumReleaseAge: 10080
