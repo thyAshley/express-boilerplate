@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+export type TLogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
+export type TRunTimeEnvironment = "local" | "development" | "test" | "production";
+
 export function getAppConfig() {
   const configSchema = z.object({
-    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NODE_ENV: z.enum(["local", "development", "test", "production"]).default("development"),
     PORT: z.coerce.number().int().positive().default(3000),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
@@ -18,12 +21,11 @@ export function getAppConfig() {
 
   if (!parsed.success) {
     // to throw a error later
-    // console.error("Invalid environment variables:", z.treeifyError(parsed.error));
     process.exit(1);
   }
 
   return Object.freeze({
-    environmnent: parsed.data.NODE_ENV,
+    environment: parsed.data.NODE_ENV,
     server: {
       port: parsed.data.PORT,
       logLevel: parsed.data.LOG_LEVEL,

@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
-import { appConfig } from "./config/appConfig.js";
+import { appConfig } from "./config/app.config.js";
 import { router } from "./routes/index.js";
 import { logger } from "./utils/logger.js";
 

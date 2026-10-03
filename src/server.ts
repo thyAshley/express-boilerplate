@@ -1,11 +1,11 @@
 import { createApp } from "./app.js";
-import { appConfig } from "./config/appConfig.js";
-import { closeDb, pingDb } from "./db/client.js";
+import { appConfig } from "./config/app.config.js";
+import { closeDb, getDBStatus } from "./db/client.js";
 import { logger } from "./utils/logger.js";
 
 // Fail fast if the database is unreachable instead of serving requests that will error
 try {
-  await pingDb();
+  await getDBStatus();
   logger.info("Database connected");
 } catch (err) {
   logger.fatal({ err }, "Could not connect to the database");
@@ -17,7 +17,7 @@ const app = createApp();
 
 const server = app.listen(appConfig.server.port, () => {
   logger.info(
-    `Server listening on http://localhost:${appConfig.server.port} (${appConfig.environmnent})`,
+    `Server listening on http://localhost:${appConfig.server.port} (${appConfig.environment})`,
   );
 });
 

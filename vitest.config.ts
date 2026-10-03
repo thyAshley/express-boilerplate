@@ -11,12 +11,8 @@ export default defineConfig({
     unstubGlobals: true,
     // to set env for testing if any
     env: {
-      NODE_ENV: "test",
+      NODE_ENV: "local",
       LOG_LEVEL: "silent",
-      POSTGRES_USER: process.env.POSTGRES_USER ?? "postgres",
-      POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ?? "postgres",
-      POSTGRES_DB: process.env.POSTGRES_DB ?? "app_test",
-      POSTGRES_PORT: process.env.POSTGRES_PORT ?? "5432",
     },
     // Code coverage configuration
     coverage: {

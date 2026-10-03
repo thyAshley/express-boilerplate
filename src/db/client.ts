@@ -1,7 +1,6 @@
-import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { appConfig } from "../config/appConfig.js";
+import { appConfig } from "../config/app.config.js";
 import { logger } from "../utils/logger.js";
 import * as schema from "./schema.js";
 
@@ -18,9 +17,14 @@ pool.on("error", (err) => {
 });
 export const db = drizzle({ client: pool, schema });
 
-export async function pingDb(): Promise<void> {
-  await db.execute(sql`select 1`);
-  logger.info("Pinged the database successfully");
+export async function getDBStatus(): Promise<boolean> {
+  try {
+    await db.execute(db.execute(`select 1`));
+    return true;
+  } catch (err) {
+    logger.error({ err }, "Database is unreachable");
+    return false;
+  }
 }
 
 export async function closeDb(): Promise<void> {

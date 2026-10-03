@@ -3,7 +3,8 @@
   "version": "1.0.0-rc.4",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "pnpm predev && tsx watch --env-file-if-exists=.env src/server.ts",
+    "predev": "docker compose up -d --wait db",
+    "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "test": "vitest run",
@@ -13,11 +14,8 @@
     "biome": "biome check .",
     "biome:fix": "biome check --write .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts",
-    "db:studio": "drizzle-kit studio",
-    "predev": "docker compose up -d --wait db && pnpm db:migrate",
-    "db:up": "docker compose up -d --wait db",
-    "db:down": "docker compose stop db"
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "keywords": [
     "express",
