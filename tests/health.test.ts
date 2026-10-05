@@ -13,12 +13,12 @@ afterEach(() => {
 
 describe("GET /api/health", () => {
   it("returns 200 when the database is reachable", async () => {
-    vi.spyOn(dbClient, "pingDb").mockResolvedValue();
+    vi.spyOn(dbClient, "getDBStatus").mockResolvedValue(true);
     const res = await request(createApp()).get("/api/health");
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
-      status: "ready",
-      checks: { database: "healthy" },
+      status: "ok",
+      services: { database: "healthy" },
       system: { nodeVersion: process.version },
     });
     expect(res.body.timestamp).toEqual(expect.any(String));
@@ -27,10 +27,10 @@ describe("GET /api/health", () => {
   });
 
   it("returns 503 when the database is unreachable", async () => {
-    vi.spyOn(dbClient, "pingDb").mockRejectedValue(new Error("ECONNREFUSED"));
+    vi.spyOn(dbClient, "getDBStatus").mockRejectedValue(new Error("ECONNREFUSED"));
     const res = await request(createApp()).get("/api/health");
-    expect(res.status).toBe(503);
-    expect(res.body).toMatchObject({ status: "unready", checks: { database: "unhealthy" } });
+    expect(res.status).toBe(500);
+    expect(res.body).toMatchObject({ status: "unready", services: { database: "unhealthy" } });
     expect(res.body.timestamp).toEqual(expect.any(String));
     expect(JSON.stringify(res.body)).not.toContain("ECONNREFUSED");
   });

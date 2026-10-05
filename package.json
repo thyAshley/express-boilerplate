@@ -5,6 +5,7 @@
   "scripts": {
     "predev": "docker compose up -d --wait db",
     "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
+    "dev:docker": "docker compose up --build app",
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "test": "vitest run",

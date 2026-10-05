@@ -12,7 +12,7 @@ export default defineConfig({
     casing: "camel",
   },
   dbCredentials: {
-    host: "localhost",
+    host: appConfig.database.host,
     port: appConfig.database.port,
     database: appConfig.database.name,
     user: appConfig.database.user,

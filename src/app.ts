@@ -1,20 +1,27 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import { pinoHttp } from "pino-http";
+import type { Logger } from "pino";
 import { appConfig } from "./config/app.config.js";
+import { errorHandler } from "./middleware/error-handler.middleware.js";
+import { createRequestLogger } from "./middleware/request-logger.middleware.js";
 import { router } from "./routes/index.js";
-import { logger } from "./utils/logger.js";
 
-export function createApp() {
+type TCreateAppOptions = {
+  logger?: Logger;
+};
+
+export function createApp({ logger }: TCreateAppOptions = {}) {
   const app = express();
 
+  app.use(createRequestLogger(logger));
   app.use(helmet());
   app.use(cors({ origin: appConfig.server.corsOrigin }));
   app.use(express.json({ limit: "1mb" }));
-  app.use(pinoHttp({ logger }));
 
   app.use("/api", router);
+
+  app.use(errorHandler);
 
   return app;
 }

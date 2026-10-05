@@ -1,6 +1,30 @@
 name: express-boilerplate
 
 services:
+  app:
+    build:
+      context: .
+      target: dev
+    command: >-
+      sh -c 'pnpm install --frozen-lockfile && exec pnpm exec tsx watch --include .env --env-file-if-exists=.env src/server.ts'
+    environment:
+      NODE_ENV: local
+      PORT: ${PORT:-3000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: postgres:17-alpine
     environment:
@@ -20,3 +44,4 @@ services:
 
 volumes:
   pgdata:
+  app_node_modules:

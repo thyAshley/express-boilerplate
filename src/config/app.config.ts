@@ -14,6 +14,7 @@ export function getAppConfig() {
     POSTGRES_USER: z.string().default("postgres"),
     POSTGRES_PASSWORD: z.string().default("postgres"),
     POSTGRES_DB: z.string().default("app"),
+    POSTGRES_HOST: z.string().default("localhost"),
     POSTGRES_PORT: z.coerce.number().int().positive().default(5432),
   });
 
@@ -32,7 +33,7 @@ export function getAppConfig() {
       corsOrigin: parsed.data.CORS_ORIGIN,
     },
     database: Object.freeze({
-      host: "localhost",
+      host: parsed.data.POSTGRES_HOST,
       port: parsed.data.POSTGRES_PORT,
       name: parsed.data.POSTGRES_DB,
       user: parsed.data.POSTGRES_USER,

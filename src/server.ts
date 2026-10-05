@@ -15,7 +15,12 @@ try {
 
 const app = createApp();
 
-const server = app.listen(appConfig.server.port, () => {
+const server = app.listen(appConfig.server.port, async (err) => {
+  if (err) {
+    logger.fatal({ err }, `Could not listen on port ${appConfig.server.port}`);
+    await closeDb();
+    process.exit(1);
+  }
   logger.info(
     `Server listening on http://localhost:${appConfig.server.port} (${appConfig.environment})`,
   );
@@ -30,7 +35,7 @@ function shutdown(signal: string) {
       logger.error({ err: dbErr }, "Error closing database pool");
       process.exit(1);
     }
-    if (err) {
+    if (err && (err as NodeJS.ErrnoException).code !== "ERR_SERVER_NOT_RUNNING") {
       logger.error({ err }, "Error during shutdown");
       process.exit(1);
     }

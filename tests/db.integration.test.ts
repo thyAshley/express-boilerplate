@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
-import { closeDb, db, pingDb } from "../src/db/client.js";
+import { closeDb, db, getDBStatus } from "../src/db/client.js";
 
 // Runs only when a real database is available, e.g. `RUN_DB_TESTS=1 pnpm test`
 describe.runIf(process.env.RUN_DB_TESTS)("database (integration)", () => {
@@ -9,7 +9,7 @@ describe.runIf(process.env.RUN_DB_TESTS)("database (integration)", () => {
   });
 
   it("connects and runs a query", async () => {
-    await expect(pingDb()).resolves.toBeUndefined();
+    await expect(getDBStatus()).resolves.toBe("ok");
     const result = await db.execute<{ n: number }>(sql`select 1 as n`);
     expect(result.rows[0]?.n).toBe(1);
   });

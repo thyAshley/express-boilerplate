@@ -1,8 +1,10 @@
-FROM node:22-alpine AS build
+FROM node:22-alpine AS dev
 RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
+
+FROM dev AS build
 COPY tsconfig*.json ./
 COPY src ./src
 RUN pnpm run build && pnpm prune --prod
