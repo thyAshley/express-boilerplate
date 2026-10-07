@@ -1,5 +1,5 @@
-import type { ErrorRequestHandler } from "express";
 import { STATUS_CODES } from "node:http";
+import type { ErrorRequestHandler } from "express";
 import { statusToCode } from "../utils/http-error.js";
 
 function isErrorStatus(status: unknown): status is number {
@@ -29,7 +29,6 @@ export const errorHandlingMiddleware: ErrorRequestHandler = (err, _req, res, nex
         (expose && (err.code ?? err.type?.toUpperCase().replace(/[^A-Z0-9]+/g, "_"))) ||
         statusToCode(statusCode),
       ...(expose && err.details !== undefined && { details: err.details }),
-      ...(process.env.NODE_ENV !== "production" && { stack: err?.stack }),
     },
   });
 };
