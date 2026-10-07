@@ -9,7 +9,7 @@ describe.runIf(process.env.RUN_DB_TESTS)("database (integration)", () => {
   });
 
   it("connects and runs a query", async () => {
-    await expect(getDBStatus()).resolves.toBe("ok");
+    await expect(getDBStatus()).resolves.toBe(true);
     const result = await db.execute<{ n: number }>(sql`select 1 as n`);
     expect(result.rows[0]?.n).toBe(1);
   });

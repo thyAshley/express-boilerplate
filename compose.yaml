@@ -6,7 +6,7 @@ services:
       context: .
       target: dev
     command: >-
-      sh -c 'pnpm install --frozen-lockfile && exec pnpm exec tsx watch --include .env --env-file-if-exists=.env src/server.ts'
+      sh -c 'pnpm install --frozen-lockfile && pnpm exec tsx src/db/migrate.ts && exec pnpm exec tsx watch --include .env --env-file-if-exists=.env src/server.ts'
     environment:
       NODE_ENV: local
       PORT: ${PORT:-3000}

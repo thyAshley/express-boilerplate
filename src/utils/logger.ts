@@ -59,7 +59,15 @@ export function createLogger(
         };
       },
       redact: {
-        paths: ["req.headers.authorization", "req.headers.cookie"],
+        paths: [
+          "req.headers.authorization",
+          "req.headers.cookie",
+          "*.password",
+          "*.token",
+          "*.accessToken",
+          "*.refreshToken",
+          "*.secret",
+        ],
         censor: "[REDACTED]",
       },
     },
@@ -103,7 +111,7 @@ export function createServiceLogger(
   service: string,
   { fn, parent = logger }: TServiceLoggerOptions = {},
 ): Logger {
-  return parent.child(fn ? { module: service } : { module: service }, {
-    msgPrefix: `[${service}] `,
+  return parent.child(fn ? { component: service, fn } : { component: service }, {
+    msgPrefix: fn ? `[${service}.${fn}] ` : `[${service}] `,
   });
 }

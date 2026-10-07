@@ -26,9 +26,10 @@ function resolveRequestId(headerValue: string | string[] | undefined) {
   return candidate && REQUEST_ID_PATTERN.test(candidate) ? candidate : randomUUID();
 }
 
-export function createRequestLogger(logger: Logger = defaultLogger) {
+export function requestLoggerMiddleware(logger: Logger = defaultLogger) {
   const httpLogger = pinoHttp({
     logger,
+
     genReqId: (req, res) => {
       const id = resolveRequestId(req.headers[REQUEST_ID_HEADER]);
       res.setHeader(REQUEST_ID_HEADER, id);

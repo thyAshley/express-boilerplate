@@ -3,7 +3,8 @@ import type { THealthService } from "./health.service.js";
 
 export const createHealthController = (healthService: THealthService) => ({
   getSystemStatus: async (_req: Request, res: Response) => {
-    res.json(await healthService.getSystemStatus());
+    const systemStatus = await healthService.getSystemStatus();
+    res.status(systemStatus.status === "ok" ? 200 : 503).json(systemStatus);
   },
 });
 

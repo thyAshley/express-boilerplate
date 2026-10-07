@@ -6,14 +6,14 @@ const healthServiceLogger = createServiceLogger("HealthService");
 export const createHealthService = () => ({
   getSystemStatus: async () => {
     const memory = process.memoryUsage();
-    const dbStatus = await getDBStatus();
-    healthServiceLogger.info("Getting system status");
+    const isDbHealthy = await getDBStatus().catch(() => false);
+    healthServiceLogger.debug("Getting system status");
     return {
-      status: "ok",
+      status: isDbHealthy ? ("ok" as const) : ("unready" as const),
       timestamp: new Date().toISOString(),
       uptime: `${Math.floor(process.uptime())}s`,
       services: {
-        database: dbStatus ? "healthy" : "unhealthy",
+        database: isDbHealthy ? "healthy" : "unhealthy",
       },
       system: {
         memoryHeapUsed: `${Math.round(memory.heapUsed / 1024 / 1024)}MB`,

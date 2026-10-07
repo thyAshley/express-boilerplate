@@ -4,14 +4,12 @@ import { closeDb, getDBStatus } from "./db/client.js";
 import { logger } from "./utils/logger.js";
 
 // Fail fast if the database is unreachable instead of serving requests that will error
-try {
-  await getDBStatus();
-  logger.info("Database connected");
-} catch (err) {
-  logger.fatal({ err }, "Could not connect to the database");
+if (!(await getDBStatus())) {
+  logger.fatal("Could not connect to the database");
   await closeDb();
   process.exit(1);
 }
+logger.info("Database connected");
 
 const app = createApp();
 

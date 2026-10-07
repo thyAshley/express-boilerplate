@@ -3,7 +3,7 @@
   "version": "1.0.0-rc.4",
   "main": "dist/server.js",
   "scripts": {
-    "predev": "docker compose up -d --wait db",
+    "predev": "pnpm db:up",
     "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
     "dev:docker": "docker compose up --build app",
     "build": "tsc -p tsconfig.build.json",
@@ -14,6 +14,10 @@
     "typecheck": "tsc --noEmit",
     "biome": "biome check .",
     "biome:fix": "biome check --write .",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose stop db",
+    "db:reset": "docker compose rm -sf db && docker volume rm -f express-boilerplate_pgdata && pnpm db:up",
+    "db:logs": "docker compose logs -f db",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

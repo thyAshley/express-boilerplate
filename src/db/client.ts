@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { appConfig } from "../config/app.config.js";
@@ -19,7 +20,7 @@ export const db = drizzle({ client: pool, schema });
 
 export async function getDBStatus(): Promise<boolean> {
   try {
-    await db.execute(db.execute(`select 1`));
+    await db.execute(sql`select 1`);
     return true;
   } catch (err) {
     logger.error({ err }, "Database is unreachable");
