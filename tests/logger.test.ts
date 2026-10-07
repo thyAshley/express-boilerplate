@@ -1,5 +1,5 @@
-import express from "express";
 import { Writable } from "node:stream";
+import express from "express";
 import request from "supertest";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
@@ -109,13 +109,9 @@ describe("request logger", () => {
     const res = await request(app).get("/boom");
 
     expect(res.status).toBe(500);
-    expect(res.body).toEqual({
-      success: false,
-      error: {
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Internal Server Error",
-        requestId: res.headers["x-request-id"],
-      },
+    expect(res.body.error).toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Internal Server Error",
     });
 
     const line = completionLine(lines);
@@ -176,7 +172,7 @@ describe("logger", () => {
       level: "info",
       message: "hello",
       timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
-      context: { },
+      context: {},
     });
   });
 

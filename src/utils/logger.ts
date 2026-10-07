@@ -4,8 +4,6 @@ import { styleText } from "node:util";
 import pino, { type DestinationStream, type Logger } from "pino";
 import { appConfig } from "../config/app.config.js";
 
-const SERVICE_NAME = "express-boilerplate";
-
 const LOGGER_FILE = fileURLToPath(import.meta.url);
 // "    at SqsPoller.logInfo (/app/src/SqsPoller.ts:160:9)" or "    at /app/src/index.ts:3:1"
 const STACK_FRAME_PATTERN = /^\s*at (?:(.+?) \()?(.+?):(\d+):\d+\)?$/;

@@ -6,10 +6,8 @@ import { pinoHttp } from "pino-http";
 
 export type TRequestLoggerOptions = {
   logger: Logger;
-  // Paths whose successful requests log at debug instead of info, e.g. health checks
   quietPaths?: string[];
   requestIdHeader?: string;
-  // Runs the rest of the request inside a context, e.g. AsyncLocalStorage so app logs carry reqId
   runInContext?: (requestId: string, next: () => void) => void;
 };
 
@@ -53,7 +51,12 @@ export function requestLoggerMiddleware({
       return quietPathSet.has(getRequestPath(req)) ? "debug" : "info";
     },
     serializers: {
-      req: (req) => req,
+      req: (req) => ({
+        method: req.method,
+        path: getRequestPath(req.raw),
+        ip: (req.raw as Request).ip,
+        userAgent: req.headers["user-agent"],
+      }),
       res: (res) => ({
         statusCode: res.statusCode,
       }),
