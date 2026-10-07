@@ -1,5 +1,5 @@
-import { Writable } from "node:stream";
 import express from "express";
+import { Writable } from "node:stream";
 import request from "supertest";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { closeDb } from "../src/db/client.js";
@@ -23,12 +23,12 @@ function appThrowing(err: unknown) {
 }
 
 describe("error handler", () => {
-  it("includes the stack outside production only", async () => {
-    expect((await request(appThrowing(new Error("x"))).get("/fail")).body.error.stack).toMatch(
-      /^Error: x/,
-    );
+  it("does not include the stack in responses", async () => {
+    const defaultEnvRes = await request(appThrowing(new Error("x"))).get("/fail");
 
-    vi.stubEnv("NODE_ENV", "production");
+    expect(defaultEnvRes.body.error).not.toHaveProperty("stack");
+
+    vi.stubEnv("NODE_ENV", "local");
     const res = await request(appThrowing(new Error("x"))).get("/fail");
 
     expect(res.body.error).not.toHaveProperty("stack");
