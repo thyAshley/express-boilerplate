@@ -4,7 +4,6 @@ import helmet from "helmet";
 import type { Logger } from "pino";
 import { appConfig } from "./config/app.config.js";
 import { errorHandlingMiddleware } from "./middleware/error-handler.middleware.js";
-import { notFoundMiddleware } from "./middleware/not-found.middleware.js";
 import { requestLoggerMiddleware } from "./middleware/request-logger.middleware.js";
 import { router } from "./routes/index.js";
 import { ROUTES } from "./routes/routes.constants.js";
@@ -28,7 +27,6 @@ export function createApp({ logger = appLogger }: TCreateAppOptions = {}) {
   app.use(cors({ origin: appConfig.server.corsOrigin }));
   app.use(express.json({ limit: "1mb" }));
   app.use("/api", router);
-  app.use(notFoundMiddleware);
   app.use(errorHandlingMiddleware);
 
   return app;
