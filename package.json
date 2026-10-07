@@ -8,6 +8,8 @@
     "predev": "pnpm db:up",
     "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
     "dev:docker": "docker compose up --build app",
+    "ci:local": "pnpm db:up && pnpm exec biome ci . && pnpm typecheck && POSTGRES_DB=app_test RUN_DB_TESTS=1 pnpm exec tsx src/db/migrate.ts && POSTGRES_DB=app_test RUN_DB_TESTS=1 pnpm test && pnpm build",
+    "hooks:install": "git config core.hooksPath .githooks",
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "test": "vitest run",
