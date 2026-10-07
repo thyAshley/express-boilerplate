@@ -1,11 +1,11 @@
-import { Writable } from "node:stream";
 import express from "express";
+import { Writable } from "node:stream";
 import request from "supertest";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
 import * as dbClient from "../src/db/client.js";
-import { errorHandler } from "../src/middleware/error-handler.middleware.js";
-import { createRequestLogger } from "../src/middleware/request-logger.middleware.js";
+import { errorHandlingMiddleware } from "../src/middleware/error-handler.middleware.js";
+import { requestLoggerMiddleware } from "../src/middleware/request-logger.middleware.js";
 import { logger as appLogger, createLogger, createServiceLogger } from "../src/utils/logger.js";
 
 type TLogLine = Record<string, unknown> & { msg?: string; level?: string };
@@ -28,7 +28,7 @@ function captureLogs(options?: Parameters<typeof createLogger>[1]) {
 function createTestApp() {
   const { logger, lines } = captureLogs();
   const app = express();
-  app.use(createRequestLogger(logger));
+  app.use(requestLoggerMiddleware(logger));
   app.get("/echo", (req, res) => {
     req.log.info("from req.log");
     res.json({ ok: true });
@@ -36,7 +36,7 @@ function createTestApp() {
   app.get("/boom", () => {
     throw new Error("kaboom");
   });
-  app.use(errorHandler);
+  app.use(errorHandlingMiddleware);
   return { app, lines };
 }
 
