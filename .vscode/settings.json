@@ -1,14 +1,14 @@
 {
+  // Format/fix on save don't run with "afterDelay" auto save, so save on focus change instead
+  "files.autoSave": "onFocusChange",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
-    "source.fixAll.eslint": "explicit",
-    "source.addMissingImports": "explicit",
+    "source.addMissingImports.ts": "explicit",
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
   },
-  "biome.requireConfiguration": false,
+  "biome.requireConfiguration": true,
   "biome.lsp.bin": "node_modules/@biomejs/biome/bin/biome"
 }
