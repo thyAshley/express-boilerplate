@@ -6,9 +6,18 @@ import { createApp } from "../src/app.js";
 import * as dbClient from "../src/db/client.js";
 import { errorHandlingMiddleware } from "../src/middleware/error-handler.middleware.js";
 import { requestLoggerMiddleware } from "../src/middleware/request-logger.middleware.js";
-import { logger as appLogger, createLogger, createServiceLogger } from "../src/utils/logger.js";
+import {
+  logger as appLogger,
+  createLogger,
+  createServiceLogger,
+  runWithRequestLogContext,
+} from "../src/utils/logger.js";
 
-type TLogLine = Record<string, unknown> & { msg?: string; level?: string };
+type TLogLine = Record<string, unknown> & {
+  message?: string;
+  level?: string;
+  context?: Record<string, unknown>;
+};
 
 function captureLogs(options?: Parameters<typeof createLogger>[1]) {
   const lines: TLogLine[] = [];
@@ -28,7 +37,12 @@ function captureLogs(options?: Parameters<typeof createLogger>[1]) {
 function createTestApp() {
   const { logger, lines } = captureLogs();
   const app = express();
-  app.use(requestLoggerMiddleware(logger));
+  app.use(
+    requestLoggerMiddleware({
+      logger,
+      runInContext: (reqId, next) => runWithRequestLogContext({ reqId }, next),
+    }),
+  );
   app.get("/echo", (req, res) => {
     req.log.info("from req.log");
     res.json({ ok: true });
@@ -54,7 +68,7 @@ describe("request logger", () => {
     expect(res.headers["x-request-id"]).toBe("abc-123");
     expect(lines.length).toBeGreaterThanOrEqual(2);
     for (const line of lines) {
-      expect(line.reqId).toBe("abc-123");
+      expect(line.context?.txid).toBe("abc-123");
     }
   });
 
@@ -62,7 +76,7 @@ describe("request logger", () => {
     const { app, lines } = createTestApp();
     await request(app).get("/echo");
 
-    const handlerLine = lines.find((line) => line.msg === "from req.log");
+    const handlerLine = lines.find((line) => line.message === "from req.log");
     expect(handlerLine).toBeDefined();
     expect(Object.keys(handlerLine ?? {})).not.toContain("req");
   });
@@ -84,7 +98,7 @@ describe("request logger", () => {
     expect(serialized).not.toContain("super-secret");
     expect(completionLine(lines)).toMatchObject({
       level: "info",
-      msg: "GET /echo [200]",
+      message: "GET /echo [200]",
       req: { method: "GET", path: "/echo" },
       res: { statusCode: 200 },
     });
@@ -96,8 +110,12 @@ describe("request logger", () => {
 
     expect(res.status).toBe(500);
     expect(res.body).toEqual({
-      error: "Internal Server Error",
-      requestId: res.headers["x-request-id"],
+      success: false,
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal Server Error",
+        requestId: res.headers["x-request-id"],
+      },
     });
 
     const line = completionLine(lines);
@@ -115,8 +133,11 @@ describe("request logger", () => {
       .send("{bad json");
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toEqual(expect.any(String));
-    expect(res.body.error).not.toBe("Internal Server Error");
+    expect(res.body.error).toMatchObject({
+      code: "ENTITY_PARSE_FAILED",
+      message: expect.any(String),
+    });
+    expect(res.body.error.message).not.toBe("Internal Server Error");
   });
 
   it("does not log successful health checks", async () => {
@@ -141,27 +162,31 @@ describe("logger", () => {
     expect(appLogger.level).toBe("silent");
   });
 
-  it("emits string levels and service metadata", () => {
+  it("emits string levels, an ISO timestamp and the service name in context", () => {
     const { logger, lines } = captureLogs();
     logger.info("hello");
 
+    expect(Object.keys(lines[0] ?? {}).sort()).toEqual([
+      "context",
+      "level",
+      "message",
+      "timestamp",
+    ]);
     expect(lines[0]).toMatchObject({
       level: "info",
-      msg: "hello",
-      service: "express-boilerplate",
-      env: "local",
+      message: "hello",
+      timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+      context: { },
     });
   });
 
-  it("prefixes messages from a service logger and tags the component", () => {
+  it("prefixes messages from a service logger", () => {
     const { logger, lines } = captureLogs();
     const serviceLogger = createServiceLogger("UserService", { parent: logger });
     serviceLogger.info({ userId: 1 }, "created user");
 
     expect(lines[0]).toMatchObject({
-      msg: "[UserService] created user",
-      component: "UserService",
-      service: "express-boilerplate",
+      message: "[UserService] created user",
       userId: 1,
     });
   });
@@ -171,13 +196,11 @@ describe("logger", () => {
     createServiceLogger("UserService", { fn: "createUser", parent: logger }).info("created user");
 
     expect(lines[0]).toMatchObject({
-      msg: "[UserService.createUser] created user",
-      component: "UserService",
-      fn: "createUser",
+      message: "[UserService.createUser] created user",
     });
   });
 
-  it("adds the calling function as a field when enabled", () => {
+  it("adds the calling file, function and line to context when enabled", () => {
     const { logger, lines } = captureLogs({ captureCaller: true });
     const userService = {
       createUser() {
@@ -186,7 +209,14 @@ describe("logger", () => {
     };
     userService.createUser();
 
-    expect(lines[0]).toMatchObject({ msg: "created user", function: "createUser" });
+    expect(lines[0]).toMatchObject({
+      message: "created user",
+      context: {
+        file: expect.stringMatching(/tests[\\/]logger\.test\.ts$/),
+        function: "createUser",
+        line: expect.any(Number),
+      },
+    });
   });
 
   it("omits the function field when the caller is anonymous", () => {
@@ -202,7 +232,8 @@ describe("logger", () => {
 
     expect(lines).toHaveLength(2);
     for (const line of lines) {
-      expect(line).not.toHaveProperty("function");
+      expect(line.context).not.toHaveProperty("function");
+      expect(line.context).toHaveProperty("file");
     }
   });
 
@@ -215,7 +246,7 @@ describe("logger", () => {
     };
     userService.createUser();
 
-    expect(lines[0]).not.toHaveProperty("function");
+    expect(lines[0]?.context).toEqual({});
   });
 
   it("redacts sensitive fields", () => {

@@ -1,24 +1,23 @@
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage } from "node:http";
-import type { NextFunction, Request, Response } from "express";
 import type { Logger } from "pino";
 import { pinoHttp } from "pino-http";
-import { ROUTES } from "../routes/routes.constants.js";
-import { logger as defaultLogger, runWithRequestLogContext } from "../utils/logger.js";
 
-const REQUEST_ID_HEADER = "x-request-id";
+export type TRequestLoggerOptions = {
+  logger: Logger;
+  // Paths whose successful requests log at debug instead of info, e.g. health checks
+  quietPaths?: string[];
+  requestIdHeader?: string;
+  // Runs the rest of the request inside a context, e.g. AsyncLocalStorage so app logs carry reqId
+  runInContext?: (requestId: string, next: () => void) => void;
+};
 
-// Inbound IDs are echoed back and written to every log line, so only accept short, plain values
 const REQUEST_ID_PATTERN = /^[\w\-.:]{1,128}$/;
 
-// Probes hit these constantly, so successes log at debug (hidden at the usual production level of info)
-const QUIET_PATHS = new Set([`/api${ROUTES.health.getSystemStatus}`]);
-
-// Path only: query strings can carry tokens, reset codes, etc.
 function getRequestPath(req: IncomingMessage & { originalUrl?: string }) {
-  const url = req.originalUrl ?? req.url ?? "/";
-  const queryIndex = url.indexOf("?");
-  return queryIndex === -1 ? url : url.slice(0, queryIndex);
+  const [path = "/"] = (req.originalUrl ?? req.url ?? "/").split("?");
+  return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
 function resolveRequestId(headerValue: string | string[] | undefined) {
@@ -26,17 +25,24 @@ function resolveRequestId(headerValue: string | string[] | undefined) {
   return candidate && REQUEST_ID_PATTERN.test(candidate) ? candidate : randomUUID();
 }
 
-export function requestLoggerMiddleware(logger: Logger = defaultLogger) {
+export function requestLoggerMiddleware({
+  logger,
+  quietPaths = [],
+  requestIdHeader = "x-request-id",
+  runInContext,
+}: TRequestLoggerOptions): RequestHandler[] {
+  const quietPathSet = new Set(quietPaths);
+  const headerName = requestIdHeader.toLowerCase();
+
   const httpLogger = pinoHttp({
     logger,
-
     genReqId: (req, res) => {
-      const id = resolveRequestId(req.headers[REQUEST_ID_HEADER]);
-      res.setHeader(REQUEST_ID_HEADER, id);
-      return id;
+      const requestId = resolveRequestId(req.headers[headerName]);
+      res.setHeader(headerName, requestId);
+      return requestId;
     },
-    // In-handler `req.log` lines only carry reqId (via the mixin); the full req object is logged once on completion
-    quietReqLogger: true,
+    // With a context hook the ID is attached by the logger itself, so don't also bind it per request
+    quietReqLogger: !runInContext,
     customLogLevel: (req, res, err) => {
       if (res.statusCode >= 500 || err) {
         return "error";
@@ -44,24 +50,12 @@ export function requestLoggerMiddleware(logger: Logger = defaultLogger) {
       if (res.statusCode >= 400) {
         return "warn";
       }
-      if (QUIET_PATHS.has(getRequestPath(req))) {
-        return "debug";
-      }
-      return "info";
+      return quietPathSet.has(getRequestPath(req)) ? "debug" : "info";
     },
     serializers: {
-      req: (req) => {
-        const raw = req.raw as Request;
-        return {
-          method: req.method,
-          path: getRequestPath(raw),
-          ip: raw.ip,
-          userAgent: req.headers["user-agent"],
-        };
-      },
+      req: (req) => req,
       res: (res) => ({
         statusCode: res.statusCode,
-        contentLength: res.headers["content-length"],
       }),
     },
     customSuccessMessage: (req, res) => `${req.method} ${getRequestPath(req)} [${res.statusCode}]`,
@@ -69,11 +63,15 @@ export function requestLoggerMiddleware(logger: Logger = defaultLogger) {
       `${req.method} ${getRequestPath(req)} failed [${res.statusCode}]: ${err.message}`,
   });
 
-  // pino-http assigns req.id; the context makes it available to any logger call made during the request
-  const requestLogContext = (req: Request, _res: Response, next: NextFunction) => {
-    runWithRequestLogContext({ reqId: String(req.id) }, next);
+  if (!runInContext) {
+    return [httpLogger];
+  }
+
+  const requestContext = (req: Request, _res: Response, next: NextFunction) => {
+    // Handler logs carry the ID from the context; drop the per-request `req` binding
+    req.log = httpLogger.logger;
+    runInContext(String(req.id), next);
   };
 
-  // Order matters, so they are only exposed as a pair
-  return [httpLogger, requestLogContext];
+  return [httpLogger, requestContext];
 }

@@ -10,6 +10,8 @@ export function getAppConfig() {
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),
+    // Defaults to "pretty" when NODE_ENV=local, "json" everywhere else
+    LOG_FORMAT: z.enum(["pretty", "json"]).optional(),
     CORS_ORIGIN: z.string().default("*"),
     POSTGRES_USER: z.string().default("postgres"),
     POSTGRES_PASSWORD: z.string().default("postgres"),
@@ -30,6 +32,7 @@ export function getAppConfig() {
     server: {
       port: parsed.data.PORT,
       logLevel: parsed.data.LOG_LEVEL,
+      logFormat: parsed.data.LOG_FORMAT ?? (parsed.data.NODE_ENV === "local" ? "pretty" : "json"),
       corsOrigin: parsed.data.CORS_ORIGIN,
     },
     database: Object.freeze({
