@@ -1,5 +1,4 @@
 import { Router } from "express";
-
 import type { THealthController } from "./health.controller.js";
 
 export const createHealthRouter = (healthController: THealthController) => {

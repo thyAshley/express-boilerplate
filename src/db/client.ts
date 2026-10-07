@@ -11,6 +11,7 @@ export const pool = new Pool({
   database: appConfig.database.name,
   user: appConfig.database.user,
   password: appConfig.database.password,
+  ssl: appConfig.database.ssl && { rejectUnauthorized: true },
 });
 
 pool.on("error", (err) => {

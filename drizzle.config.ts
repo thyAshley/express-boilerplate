@@ -14,11 +14,7 @@ export default defineConfig({
     database: appConfig.database.name,
     user: appConfig.database.user,
     password: appConfig.database.password,
-    ssl:
-      appConfig.environment === "local"
-        ? false
-        : {
-            rejectUnauthorized: true,
-          },
+    // Same setting as the app's pool in src/db/client.ts
+    ssl: appConfig.database.ssl && { rejectUnauthorized: true },
   },
 });

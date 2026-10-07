@@ -16,13 +16,13 @@ export function getAppConfig() {
     POSTGRES_DB: z.string().default("app"),
     POSTGRES_HOST: z.string().default("localhost"),
     POSTGRES_PORT: z.coerce.number().int().positive().default(5432),
+    DATABASE_SSL: z.stringbool().default(false),
   });
 
   const parsed = configSchema.safeParse(process.env);
 
   if (!parsed.success) {
-    // to throw a error later
-    process.exit(1);
+    throw new Error(`Invalid environment configuration:\n${z.prettifyError(parsed.error)}`);
   }
 
   return Object.freeze({
@@ -38,6 +38,7 @@ export function getAppConfig() {
       name: parsed.data.POSTGRES_DB,
       user: parsed.data.POSTGRES_USER,
       password: parsed.data.POSTGRES_PASSWORD,
+      ssl: parsed.data.DATABASE_SSL,
     }),
   });
 }
